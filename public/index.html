@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>外刊精读工作台</title>
+    <meta
+      name="description"
+      content="外刊文章导入、精读阅读器、划词释义翻译、句型和单词积累、笔记归档与导出。"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f2f3a'/%3E%3Cpath d='M14 16h25c6 0 11 5 11 11v21H25c-6 0-11-5-11-11V16z' fill='%23f7f1e4'/%3E%3Cpath d='M24 26h20M24 34h16M24 42h10' stroke='%230f2f3a' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='18' r='5' fill='%23df7f4f'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="library-panel" aria-label="文章库">
+        <div class="brand">
+          <div class="brand-mark">外</div>
+          <div>
+            <h1>外刊精读</h1>
+            <p id="modeLabel">离线演示</p>
+          </div>
+        </div>
+
+        <button id="newArticleToggle" class="primary-button" type="button">导入文章</button>
+
+        <form id="importForm" class="import-form hidden">
+          <label>
+            标题
+            <input name="title" required placeholder="Article title" />
+          </label>
+          <label>
+            来源
+            <input name="source" placeholder="The Economist / NYT / 自定义" />
+          </label>
+          <label>
+            链接
+            <input name="url" placeholder="https://..." />
+          </label>
+          <label>
+            正文
+            <textarea name="content" required rows="8" placeholder="粘贴英文文章正文，段落之间留空行"></textarea>
+          </label>
+          <button class="primary-button" type="submit">保存并开始精读</button>
+        </form>
+
+        <div class="panel-heading">
+          <span>文章</span>
+          <span id="articleCount" class="count">0</span>
+        </div>
+        <div id="articleList" class="article-list"></div>
+      </aside>
+
+      <main class="reader-panel">
+        <header class="reader-header">
+          <div>
+            <div id="articleMeta" class="meta-line">加载中</div>
+            <h2 id="articleTitle">外刊精读工作台</h2>
+          </div>
+          <div class="reader-actions">
+            <button id="prevSentence" class="icon-button" type="button" title="上一句">‹</button>
+            <button id="nextSentence" class="icon-button" type="button" title="下一句">›</button>
+            <button id="readSentence" class="soft-button" type="button">朗读当前句</button>
+          </div>
+        </header>
+
+        <section class="focus-strip" aria-live="polite">
+          <span>当前句</span>
+          <p id="currentSentence">点击任意句子开始精读。</p>
+        </section>
+
+        <section id="reader" class="reader" aria-label="阅读器"></section>
+      </main>
+
+      <aside class="inspector-panel" aria-label="精读工具">
+        <nav class="tabs" aria-label="工具切换">
+          <button class="tab active" data-tab="tools" type="button">工具</button>
+          <button class="tab" data-tab="training" type="button">训练</button>
+          <button class="tab" data-tab="analysis" type="button">赏析</button>
+          <button class="tab" data-tab="collections" type="button">积累</button>
+          <button class="tab" data-tab="notes" type="button">笔记</button>
+          <button class="tab" data-tab="export" type="button">导出</button>
+        </nav>
+
+        <section id="toolsTab" class="tab-panel">
+          <div class="selection-box">
+            <div class="tiny-label">选中文本</div>
+            <p id="selectionText">在正文中划词或选择句子。</p>
+          </div>
+          <div class="tool-grid">
+            <button id="lookupButton" type="button">释义</button>
+            <button id="translateButton" type="button">翻译</button>
+            <button id="patternButton" type="button">句型</button>
+            <button id="speakButton" type="button">朗读</button>
+            <button id="highlightButton" type="button">高亮</button>
+            <button id="clearSelectionButton" type="button">清空</button>
+          </div>
+          <div id="toolResult" class="result-box"></div>
+        </section>
+
+        <section id="trainingTab" class="tab-panel hidden">
+          <div class="training-timer">
+            <div>
+              <div class="tiny-label">训练计时</div>
+              <strong id="timerLabel">25:00</strong>
+            </div>
+            <div class="timer-actions">
+              <button id="startTimerButton" class="soft-button" type="button">开始</button>
+              <button id="resetTimerButton" class="soft-button" type="button">重置</button>
+            </div>
+          </div>
+          <div id="studyFlow" class="study-flow"></div>
+          <div class="split-heading">
+            <h3>雅思题型</h3>
+            <span class="count">证据优先</span>
+          </div>
+          <div id="ieltsTraining" class="stack"></div>
+        </section>
+
+        <section id="analysisTab" class="tab-panel hidden">
+          <div id="analysisContent" class="stack"></div>
+        </section>
+
+        <section id="collectionsTab" class="tab-panel hidden">
+          <div class="split-heading">
+            <h3>单词本</h3>
+            <span id="vocabCount">0</span>
+          </div>
+          <div id="vocabList" class="stack"></div>
+          <div class="split-heading">
+            <h3>重点句型</h3>
+            <span id="patternCount">0</span>
+          </div>
+          <div id="patternList" class="stack"></div>
+          <div class="split-heading">
+            <h3>高亮</h3>
+            <span id="highlightCount">0</span>
+          </div>
+          <div id="highlightList" class="stack"></div>
+        </section>
+
+        <section id="notesTab" class="tab-panel hidden">
+          <div class="note-template-actions">
+            <button id="applyIeltsTemplate" class="soft-button" type="button">雅思复盘模板</button>
+            <button id="applySummaryTemplate" class="soft-button" type="button">读后输出模板</button>
+          </div>
+          <form id="noteForm" class="note-form">
+            <input name="title" placeholder="笔记标题" required />
+            <textarea
+              name="body"
+              rows="8"
+              placeholder="记录段落功能、关键词、同义替换、证据句、错因和输出句"
+              required
+            ></textarea>
+            <input name="tags" placeholder="标签，如 主旨,句型" />
+            <button class="primary-button" type="submit">保存笔记</button>
+          </form>
+          <div id="noteList" class="stack"></div>
+        </section>
+
+        <section id="exportTab" class="tab-panel hidden">
+          <div class="export-box">
+            <h3>归档导出</h3>
+            <p>导出会包含原文、段落结构、赏析、单词、句型、高亮和笔记。</p>
+            <div class="export-actions">
+              <a id="markdownExport" class="primary-button" href="#">Markdown</a>
+              <a id="pdfExport" class="soft-button" href="#">PDF</a>
+            </div>
+          </div>
+          <div class="api-box">
+            <h3>在线能力</h3>
+            <p id="apiState">当前使用离线 mock。配置环境变量后，释义、翻译和赏析会自动走在线接口。</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <div id="selectionToolbar" class="selection-toolbar hidden" role="toolbar" aria-label="选中文本快捷工具">
+      <button data-float-action="lookup" type="button">释义</button>
+      <button data-float-action="translate" type="button">翻译</button>
+      <button data-float-action="speak" type="button">朗读</button>
+      <button data-float-action="highlight" type="button">高亮</button>
+    </div>
+    <div id="toast" class="toast hidden"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
+

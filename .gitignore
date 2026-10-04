@@ -1,0 +1,7 @@
+# 本地运行数据库（含个人划线/生词/笔记），不入库；首次 --init-db 会自动生成
+data/*.sqlite3
+data/*.sqlite3-journal
+
+__pycache__/
+*.pyc
+.env
